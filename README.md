@@ -19,7 +19,7 @@ Open-source, self-hosted AI workspace for local computers and VPS deployments. U
 2. Copy `.env.example` to `.env` and replace both secrets with long random values.
 3. Run `docker compose up --build -d`.
 4. Pull a model: `docker compose exec ollama ollama pull qwen2.5:3b`.
-5. Open http://localhost:3000 and register an account.\n\nFor a lightweight local SQLite setup, run `docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d` instead. The default Compose setup uses PostgreSQL and is suitable for VPS/cloud deployments.
+5. Open http://localhost:3000 and register an account.\n\nFor a lightweight local SQLite setup, run `docker compose -f docker-compose.local.yml up --build -d` instead. The default Compose setup uses PostgreSQL and is suitable for VPS/cloud deployments.
 
 Example secrets:
 - Linux/macOS: `openssl rand -hex 32`
