@@ -116,15 +116,22 @@ async def chat(body: ChatInput, user: User = Depends(current_user), db: Session 
         first = next((m.content for m in body.messages if m.role == "user"), "New conversation")
         conversation = Conversation(user_id=user.id, title=first[:72], model=body.model)
         db.add(conversation); db.commit(); db.refresh(conversation)
-    for m in body.messages[-2:]:
-        db.add(ChatMessage(conversation_id=conversation.id, role=m.role, content=m.content))
+    last_user = next((m for m in reversed(body.messages) if m.role == "user"), None)
+    if last_user:
+        db.add(ChatMessage(conversation_id=conversation.id, role="user", content=last_user.content))
+    conversation.model = body.model
     db.commit()
     payload = [{"role":m.role,"content":m.content} for m in body.messages]
     async def events():
+        answer = ""
         try:
             async for token in get_provider("ollama").stream(body.model, payload, body.temperature):
-                yield "data: " + json.dumps({"token":token}, ensure_ascii=False) + "\n\n"
-            yield "data: " + json.dumps({"done":True,"conversation_id":conversation.id}) + "\n\n"
+                answer += token
+                yield "data: " + json.dumps({"token":token}, ensure_ascii=False) + "\\n\\n"
+            if answer:
+                db.add(ChatMessage(conversation_id=conversation.id, role="assistant", content=answer))
+                db.commit()
+            yield "data: " + json.dumps({"done":True,"conversation_id":conversation.id}) + "\\n\\n"
         except ProviderError as exc:
             yield "data: " + json.dumps({"error":str(exc)}) + "\n\n"
         except Exception:
