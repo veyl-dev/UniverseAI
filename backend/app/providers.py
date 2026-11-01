@@ -10,6 +10,16 @@ class OllamaProvider:
         async with httpx.AsyncClient(timeout=10) as client:
             r=await client.get(f"{self.base}/api/tags");r.raise_for_status()
             return [m.get("name","") for m in r.json().get("models",[])]
+    async def pull(self,model:str)->AsyncIterator[dict]:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10,read=None,write=30,pool=10)) as client:
+            async with client.stream("POST",f"{self.base}/api/pull",json={"name":model,"stream":True}) as r:
+                if r.status_code>=400: raise ProviderError("Ollama could not start the model download.")
+                async for line in r.aiter_lines():
+                    if not line: continue
+                    try: item=json.loads(line)
+                    except ValueError: continue
+                    if item.get("error"): raise ProviderError("Model download failed.")
+                    yield item
     async def stream(self,model:str,messages:list[dict],temperature:float=.7)->AsyncIterator[str]:
         payload={"model":model,"messages":messages,"stream":True,"options":{"temperature":temperature}}
         async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10,read=None,write=30,pool=10)) as client:
