@@ -27,6 +27,7 @@ class MessageInput(BaseModel):
     role: str = Field(pattern="^(user|assistant)$")
     content: str = Field(min_length=1, max_length=30000)
 class ChatInput(BaseModel):
+    provider: str = Field(default="ollama", pattern="^(ollama|openai-compatible)$")
     model: str = Field(default="qwen2.5:3b", min_length=1, max_length=160)
     messages: list[MessageInput] = Field(min_length=1, max_length=80)
     temperature: float = Field(default=0.7, ge=0, le=2)
@@ -125,11 +126,13 @@ def retrieve_knowledge(question: str, user_id: int, db: Session) -> str:
 
 @app.get("/api/models")
 async def models(user: User = Depends(current_user)):
+    provider_name = os.getenv("AI_PROVIDER", "ollama")
     try:
-        names = await get_provider("ollama").models()
-        return {"models":[{"name":n} for n in names], "default":os.getenv("OLLAMA_DEFAULT_MODEL","qwen2.5:3b")}
+        names = await get_provider(provider_name).models()
+        default_model = os.getenv("OPENAI_COMPAT_MODEL", "default") if provider_name == "openai-compatible" else os.getenv("OLLAMA_DEFAULT_MODEL", "qwen2.5:3b")
+        return {"provider":provider_name,"models":[{"name":n} for n in names], "default":default_model}
     except Exception:
-        raise HTTPException(503, "Ollama is unavailable. Start it and install a model.")
+        raise HTTPException(503, "Configured model provider is unavailable. Check provider settings.")
 
 @app.get("/api/conversations")
 def conversations(user: User = Depends(current_user), db: Session = Depends(get_db)):
