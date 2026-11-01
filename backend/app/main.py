@@ -1,4 +1,5 @@
-import json, os
+import json, os, io, zipfile
+from pathlib import PurePosixPath
 import httpx
 from typing import Annotated
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
@@ -268,6 +269,43 @@ async def agent_task(body: AgentTask, user: User = Depends(current_user)):
                     actions.append({"tool":name,"result":result})
                 messages.append({"role":"tool","content":json.dumps(result,ensure_ascii=False)})
     return {"response":"Agent reached the maximum tool-call steps. Review the actions and continue with a narrower task.","actions":actions,"approval_enabled":body.allow_changes}
+
+@app.post("/api/agent/workspace/import")
+async def import_workspace(file: UploadFile = File(...), user: User = Depends(current_user)):
+    if not (file.filename or "").lower().endswith(".zip"):
+        raise HTTPException(415, "Upload a project ZIP archive.")
+    raw = await file.read(25 * 1024 * 1024 + 1)
+    if len(raw) > 25 * 1024 * 1024:
+        raise HTTPException(413, "Project ZIP must be 25 MB or smaller.")
+    root = agent.user_root(user.id)
+    imported = 0
+    total = 0
+    ignored = {".git","node_modules",".venv","__pycache__",".next"}
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            entries = archive.infolist()
+            if len(entries) > 1500:
+                raise HTTPException(413, "Project archive contains too many entries.")
+            for entry in entries:
+                if entry.is_dir(): continue
+                path = PurePosixPath(entry.filename)
+                if path.is_absolute() or ".." in path.parts or any(part in ignored for part in path.parts):
+                    continue
+                if entry.file_size > 512_000: continue
+                total += entry.file_size
+                if total > 100 * 1024 * 1024:
+                    raise HTTPException(413, "Expanded project exceeds the 100 MB limit.")
+                try:
+                    content = archive.read(entry).decode("utf-8")
+                    agent.write_file(str(path), content, root)
+                    imported += 1
+                except UnicodeDecodeError:
+                    continue
+                except agent.AgentToolError:
+                    continue
+    except zipfile.BadZipFile:
+        raise HTTPException(422, "The uploaded file is not a valid ZIP archive.")
+    return {"imported_files":imported,"workspace":"ready"}
 
 @app.post("/api/agent/files/read")
 def agent_read(body: AgentRead, user: User = Depends(current_user)):
