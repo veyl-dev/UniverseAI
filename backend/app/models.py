@@ -33,3 +33,11 @@ class ChatMessage(Base):
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
+
+class KnowledgeDocument(Base):
+    __tablename__="knowledge_documents"
+    id:Mapped[int]=mapped_column(Integer,primary_key=True)
+    user_id:Mapped[int]=mapped_column(ForeignKey("users.id",ondelete="CASCADE"),index=True)
+    filename:Mapped[str]=mapped_column(String(255))
+    content:Mapped[str]=mapped_column(Text)
+    created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=now)
