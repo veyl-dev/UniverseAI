@@ -193,20 +193,20 @@ async def chat(body: ChatInput, user: User = Depends(current_user), db: Session 
 
 @app.post("/api/agent/files/read")
 def agent_read(body: AgentRead, user: User = Depends(current_user)):
-    try: return {"path":body.path,"content":agent.read_file(body.path)}
+    try: return {"path":body.path,"content":agent.read_file(body.path, agent.user_root(user.id))}
     except agent.AgentToolError as exc: raise HTTPException(400, str(exc))
 
 @app.get("/api/agent/files")
 def agent_files(path: str = ".", user: User = Depends(current_user)):
-    try: return {"files":agent.list_files(path)}
+    try: return {"files":agent.list_files(path, agent.user_root(user.id))}
     except agent.AgentToolError as exc: raise HTTPException(400, str(exc))
 
 @app.put("/api/agent/files")
 def agent_write(body: AgentWrite, user: User = Depends(current_user)):
-    try: return agent.write_file(body.path, body.content)
+    try: return agent.write_file(body.path, body.content, agent.user_root(user.id))
     except agent.AgentToolError as exc: raise HTTPException(400, str(exc))
 
 @app.post("/api/agent/check")
 def agent_check(body: AgentCheck, user: User = Depends(current_user)):
-    try: return agent.run_check(body.command)
+    try: return agent.run_check(body.command, root=agent.user_root(user.id))
     except agent.AgentToolError as exc: raise HTTPException(400, str(exc))
