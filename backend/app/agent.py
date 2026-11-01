@@ -25,12 +25,14 @@ def safe_path(relative:str,root:Path|None=None)->Path:
     return target
 def read_file(path:str,root:Path|None=None)->str:
     target=safe_path(path,root)
+    if sensitive_path(target): raise AgentToolError("Sensitive files are not accessible to the coding agent.")
     if not target.is_file(): raise AgentToolError("File does not exist.")
     if target.stat().st_size>MAX_FILE_BYTES: raise AgentToolError("File exceeds the read limit.")
     return target.read_text(encoding="utf-8")
 def write_file(path:str,content:str,root:Path|None=None)->dict:
     target=safe_path(path,root)
-    if sensitive_path(target): raise AgentToolError("Sensitive files cannot be changed by the coding agent.")\n    if len(content.encode("utf-8"))>MAX_FILE_BYTES: raise AgentToolError("File exceeds the write limit.")
+    if sensitive_path(target): raise AgentToolError("Sensitive files cannot be changed by the coding agent.")
+    if len(content.encode("utf-8"))>MAX_FILE_BYTES: raise AgentToolError("File exceeds the write limit.")
     target.parent.mkdir(parents=True,exist_ok=True);target.write_text(content,encoding="utf-8")
     return {"path":path,"bytes_written":len(content.encode("utf-8"))}
 def list_files(path:str=".",root:Path|None=None)->list[str]:
