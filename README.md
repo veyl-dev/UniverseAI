@@ -9,7 +9,8 @@ Open-source, self-hosted AI workspace for local computers and VPS deployments. U
 - Per-user conversation storage and deletion.
 - PostgreSQL for cloud deployments; SQLite can be selected with a local DATABASE_URL.
 - Provider adapter boundary (Ollama implemented; additional OpenAI-compatible providers can be added without coupling the UI to one vendor).
-- Coding-agent foundation: confined project file listing, reading and writing, and allowlisted development checks. All file paths are confined to WORKSPACE_ROOT; command execution does not use a shell.
+- Coding workspace: per-account project file listing, reading and writing, and allowlisted development checks. File paths are confined to each account workspace; command execution does not use a shell.
+- Knowledge base: TXT, Markdown, PDF and DOCX ingestion, per-account document storage, and keyword-based retrieval added to chat context.
 - Docker Compose deployment and CI checks.
 
 ## Quick start
@@ -26,11 +27,11 @@ Example secrets:
 
 ## Local database mode
 
-Set `DATABASE_URL=sqlite:///./data/universeai.db` in your backend environment and create a writable data directory. PostgreSQL is the default Compose database.
+Set `DATABASE_URL=sqlite:////app/data/universeai.db` in `.env` to use the persistent SQLite volume instead of PostgreSQL. PostgreSQL is the default Compose database.
 
 ## Coding workspace
 
-Place a project inside `./workspace`. The API can list/read/write files there and run only the configured development-check commands. Do not mount your home directory, Docker socket, SSH keys, or host root into this workspace. The agent is a development helper, not a sandbox boundary against malicious code; use a disposable container/VM for untrusted repositories.
+Place each project inside `./workspace/user-<account-id>/` on the host. The API can list/read/write files there and run only the configured development-check commands. The workspace is isolated by account. Do not mount your home directory, Docker socket, SSH keys, or host root into this workspace. The agent is a development helper, not a sandbox boundary against malicious code; use a disposable container/VM for untrusted repositories.
 
 ## Security and deployment
 
@@ -42,7 +43,7 @@ Place a project inside `./workspace`. The API can list/read/write files there an
 
 ## Roadmap
 
-Document ingestion/RAG, durable memory controls, multi-provider API-key management, image input, agent approvals and task plans, admin dashboard, mobile polish, and cloud deployment automation are the next milestones.
+Semantic vector search, persistent memory controls, multi-provider API-key management, image input, model-driven agent plans with per-action approvals, admin dashboard, mobile polish, rate limiting, migrations, and cloud deployment automation are still planned.
 
 ## License
 
