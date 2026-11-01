@@ -10,6 +10,14 @@ def user_root(user_id:int)->Path:
     if ROOT not in root.parents: raise AgentToolError("Invalid workspace.")
     root.mkdir(parents=True,exist_ok=True)
     return root
+def sensitive_path(path:Path)->bool:
+    blocked={".env",".env.local",".env.production","id_rsa","id_ed25519","credentials.json","secrets.json"}
+    for part in path.parts:
+        name=part.lower()
+        if name in blocked or name.endswith((".pem",".key")) or "secret" in name or "credential" in name:
+            if name == ".env.example": continue
+            return True
+    return False
 def safe_path(relative:str,root:Path|None=None)->Path:
     base=(root or ROOT).resolve()
     target=(base/relative).resolve()
@@ -22,7 +30,7 @@ def read_file(path:str,root:Path|None=None)->str:
     return target.read_text(encoding="utf-8")
 def write_file(path:str,content:str,root:Path|None=None)->dict:
     target=safe_path(path,root)
-    if len(content.encode("utf-8"))>MAX_FILE_BYTES: raise AgentToolError("File exceeds the write limit.")
+    if sensitive_path(target): raise AgentToolError("Sensitive files cannot be changed by the coding agent.")\n    if len(content.encode("utf-8"))>MAX_FILE_BYTES: raise AgentToolError("File exceeds the write limit.")
     target.parent.mkdir(parents=True,exist_ok=True);target.write_text(content,encoding="utf-8")
     return {"path":path,"bytes_written":len(content.encode("utf-8"))}
 def list_files(path:str=".",root:Path|None=None)->list[str]:
