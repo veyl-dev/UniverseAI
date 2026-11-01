@@ -1,0 +1,46 @@
+services:
+  # Public API service. Keep secrets in the Render Dashboard, never in Git.
+  - type: web
+    name: universeai-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_PROVIDER
+        value: openai-compatible
+      - key: OPENAI_COMPAT_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: OPENAI_COMPAT_API_KEY
+        sync: false
+      - key: OPENAI_COMPAT_MODEL
+        value: openrouter/free
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: WORKSPACE_ROOT
+        value: /tmp/universeai-workspace
+
+  # Next.js frontend proxies /api requests to the public API service.
+  # Free Render services cannot receive private-network traffic, so this
+  # intentionally uses the API service's public hostname.
+  - type: web
+    name: universeai-web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: API_INTERNAL_URL
+        fromService:
+          name: universeai-api
+          type: web
+          property: host
