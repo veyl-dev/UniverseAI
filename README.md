@@ -10,7 +10,7 @@ Open-source, self-hosted AI workspace for local computers and VPS deployments. U
 - Per-user conversation storage and deletion.
 - PostgreSQL for cloud deployments; SQLite can be selected with a local DATABASE_URL.
 - Provider selection is configuration-driven; both Ollama and OpenAI-compatible chat endpoints are supported.
-- AI coding agent with Ollama tool calling, per-account project workspaces, file listing/reading/writing, and allowlisted test/build commands. Writes and checks require the user to enable approval for that task; sensitive files and paths outside the workspace are blocked.
+- AI coding agent with Ollama tool calling, per-account project workspaces, ZIP project import, file listing/reading/writing, and allowlisted test/build commands. Writes and checks require the user to enable approval for that task; sensitive files and paths outside the workspace are blocked.
 - Knowledge base: TXT, Markdown, PDF and DOCX ingestion, per-account document storage, and keyword-based retrieval added to chat context.
 - Model Library: discover installed Ollama models and pull additional models with live download progress.
 - Configurable OpenAI-compatible chat provider for vLLM, LM Studio and hosted gateways.
