@@ -1,10 +1,30 @@
 services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollama_data:/root/.ollama]
+    restart: unless-stopped
   backend:
+    build: ./backend
     environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-qwen2.5:3b}
       DATABASE_URL: sqlite:////app/data/universeai.db
-    depends_on:
-      ollama:
-        condition: service_started
-      # PostgreSQL is not required in local SQLite mode.
-  db:
-    profiles: ["cloud"]
+      JWT_SECRET: ${JWT_SECRET:?Set a long random JWT_SECRET in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      WORKSPACE_ROOT: /workspace
+    volumes:
+      - ./workspace:/workspace
+      - backend_data:/app/data
+    depends_on: [ollama]
+    ports: ["127.0.0.1:8000:8000"]
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    environment:
+      API_INTERNAL_URL: http://backend:8000
+    depends_on: [backend]
+    ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
+volumes:
+  ollama_data:
+  backend_data:
