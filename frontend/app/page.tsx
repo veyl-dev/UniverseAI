@@ -6,13 +6,13 @@ type Model={name:string;size?:number};
 const API="/api";
 export default function Home(){
  const [token,setToken]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[authMode,setAuthMode]=useState<"login"|"register">("login"),[authError,setAuthError]=useState("");
- const [messages,setMessages]=useState<Message[]>([]),[input,setInput]=useState(""),[models,setModels]=useState<Model[]>([]),[model,setModel]=useState("qwen2.5:3b");
+ const [messages,setMessages]=useState<Message[]>([]),[input,setInput]=useState(""),[models,setModels]=useState<Model[]>([]),[model,setModel]=useState("qwen2.5:3b"),[provider,setProvider]=useState("ollama");
  const [busy,setBusy]=useState(false),[connected,setConnected]=useState(false),[conversationId,setConversationId]=useState<number|null>(null);
  const [activeTab,setActiveTab]=useState<"chat"|"code">("chat"),[fileList,setFileList]=useState<string[]>([]),[selectedFile,setSelectedFile]=useState(""),[fileContent,setFileContent]=useState(""),[agentCommand,setAgentCommand]=useState("python -m pytest"),[agentOutput,setAgentOutput]=useState("");
  const [knowledgeDocs,setKnowledgeDocs]=useState<Array<{id:number;filename:string;characters:number}>>([]);
  const bottom=useRef<HTMLDivElement>(null);
  useEffect(()=>{const saved=window.localStorage.getItem("universeai_token");if(saved)setToken(saved);},[]);
- async function refresh(){try{const r=await fetch(API+"/models",{headers:{Authorization:"Bearer "+token}});if(!r.ok)throw Error();const d=await r.json();setModels(d.models||[]);setModel(d.default||"qwen2.5:3b");setConnected(true);}catch{setConnected(false);setModels([]);}}
+ async function refresh(){try{const r=await fetch(API+"/models",{headers:{Authorization:"Bearer "+token}});if(!r.ok)throw Error();const d=await r.json();setModels(d.models||[]);setModel(d.default||"qwen2.5:3b");setProvider(d.provider||"ollama");setConnected(true);}catch{setConnected(false);setModels([]);}}
  useEffect(()=>{if(token)refresh();},[token]);useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"});},[messages]);
  async function authenticate(e:FormEvent){e.preventDefault();setAuthError("");try{const r=await fetch(API+"/auth/"+authMode,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw Error(d.detail||"Authentication failed");window.localStorage.setItem("universeai_token",d.access_token);setToken(d.access_token);setPassword("");}catch(err){setAuthError(err instanceof Error?err.message:"Could not sign in.");}}
  function logout(){window.localStorage.removeItem("universeai_token");setToken("");setMessages([]);setConversationId(null);}
@@ -25,7 +25,7 @@ export default function Home(){
  async function runCheck(){setAgentOutput("Running "+agentCommand+"…");const r=await fetch(API+"/agent/check",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({command:agentCommand})});const d=await r.json();setAgentOutput(r.ok?"Exit code: "+d.returncode+"\\n"+(d.stdout||"")+(d.stderr?"\\n"+d.stderr:""):d.detail||"Check failed");}
  async function send(e:FormEvent){e.preventDefault();const prompt=input.trim();if(!prompt||busy||!token)return;
   const prior=[...messages,{role:"user" as const,content:prompt}];setMessages([...prior,{role:"assistant",content:""}]);setInput("");setBusy(true);
-  try{const r=await fetch(API+"/chat",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({model,messages:prior,temperature:0.7,conversation_id:conversationId})});
+  try{const r=await fetch(API+"/chat",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({provider,model,messages:prior,temperature:0.7,conversation_id:conversationId})});
    if(r.status===401){logout();throw Error("Your session expired. Please sign in again.");}
    if(!r.ok||!r.body)throw Error("AI backend request failed");const reader=r.body.getReader(),decoder=new TextDecoder();let buffer="",answer="";
    while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const parts=buffer.split("\n\n");buffer=parts.pop()||"";
