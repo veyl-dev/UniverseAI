@@ -127,11 +127,11 @@ async def chat(body: ChatInput, user: User = Depends(current_user), db: Session 
         try:
             async for token in get_provider("ollama").stream(body.model, payload, body.temperature):
                 answer += token
-                yield "data: " + json.dumps({"token":token}, ensure_ascii=False) + "\\n\\n"
+                yield "data: " + json.dumps({"token":token}, ensure_ascii=False) + "\n\n"
             if answer:
                 db.add(ChatMessage(conversation_id=conversation.id, role="assistant", content=answer))
                 db.commit()
-            yield "data: " + json.dumps({"done":True,"conversation_id":conversation.id}) + "\\n\\n"
+            yield "data: " + json.dumps({"done":True,"conversation_id":conversation.id}) + "\n\n"
         except ProviderError as exc:
             yield "data: " + json.dumps({"error":str(exc)}) + "\n\n"
         except Exception:
