@@ -42,7 +42,7 @@ def list_files(path:str=".",root:Path|None=None)->list[str]:
     result=[]
     for item in folder.rglob("*"):
         if any(part in ignored for part in item.parts): continue
-        if item.is_file():
+        if item.is_file() and not sensitive_path(item):
             resolved=item.resolve()
             if base not in resolved.parents: continue
             result.append(str(resolved.relative_to(base)))
