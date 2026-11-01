@@ -1,0 +1,10 @@
+services:
+  backend:
+    environment:
+      DATABASE_URL: sqlite:////app/data/universeai.db
+    depends_on:
+      ollama:
+        condition: service_started
+      # PostgreSQL is not required in local SQLite mode.
+  db:
+    profiles: ["cloud"]
