@@ -4,7 +4,7 @@ Open-source, self-hosted AI workspace for local computers and VPS deployments. U
 
 ## Current capabilities
 
-- Local Ollama model discovery and streaming chat.
+- Local Ollama model discovery, streaming chat, and model downloads from the Model Library.\n- Optional OpenAI-compatible provider support for vLLM, LM Studio, and hosted gateways through environment configuration.
 - Email/password registration and login with Argon2 password hashing and signed expiring tokens.
 - Per-user conversation storage and deletion.
 - PostgreSQL for cloud deployments; SQLite can be selected with a local DATABASE_URL.
@@ -25,7 +25,7 @@ Example secrets:
 - Linux/macOS: `openssl rand -hex 32`
 - PowerShell: `[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))`
 
-## Local database mode
+## Model providers\n\nOllama is the default provider. To use an OpenAI-compatible endpoint, set `AI_PROVIDER=openai-compatible`, `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and optionally `OPENAI_COMPAT_API_KEY` in `.env`, then restart the stack. This supports compatible local inference servers and hosted gateways.\n\n## Local database mode
 
 Use `docker-compose.local.yml` to select SQLite for a single-machine deployment. The default Compose setup uses PostgreSQL for cloud/VPS deployments.
 
