@@ -32,7 +32,9 @@ class ChatInput(BaseModel):
     messages: list[MessageInput] = Field(min_length=1, max_length=80)
     temperature: float = Field(default=0.7, ge=0, le=2)
     conversation_id: int | None = None
-class ModelPull(BaseModel):\n    name: str = Field(pattern="^[A-Za-z0-9._:/-]{1,120}$")\nclass AgentRead(BaseModel):
+class ModelPull(BaseModel):
+    name: str = Field(pattern="^[A-Za-z0-9._:/-]{1,120}$")
+class AgentRead(BaseModel):
     path: str = Field(min_length=1, max_length=500)
 class AgentWrite(BaseModel):
     path: str = Field(min_length=1, max_length=500)
@@ -141,10 +143,10 @@ async def pull_model(body: ModelPull, user: User = Depends(current_user)):
     async def events():
         try:
             async for item in get_provider("ollama").pull(body.name):
-                yield "data: " + json.dumps(item, ensure_ascii=False) + "\\n\\n"
-            yield "data: " + json.dumps({"done":True}) + "\\n\\n"
+                yield "data: " + json.dumps(item, ensure_ascii=False) + "\n\n"
+            yield "data: " + json.dumps({"done":True}) + "\n\n"
         except ProviderError as exc:
-            yield "data: " + json.dumps({"error":str(exc)}) + "\\n\\n"
+            yield "data: " + json.dumps({"error":str(exc)}) + "\n\n"
     return StreamingResponse(events(),media_type="text/event-stream",headers={"Cache-Control":"no-cache","X-Accel-Buffering":"no"})
 
 @app.get("/api/conversations")
