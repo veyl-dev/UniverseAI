@@ -21,7 +21,7 @@ services:
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-qwen2.5:3b}
-      DATABASE_URL: postgresql+psycopg://universeai:${POSTGRES_PASSWORD:-change-this-password}@db:5432/universeai
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://universeai:${POSTGRES_PASSWORD:-change-this-password}@db:5432/universeai}
       JWT_SECRET: ${JWT_SECRET:?Set a long random JWT_SECRET in .env}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       WORKSPACE_ROOT: /workspace
