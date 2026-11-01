@@ -1,4 +1,5 @@
 import json, os
+import httpx
 from typing import Annotated
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +35,11 @@ class ChatInput(BaseModel):
     conversation_id: int | None = None
 class ModelPull(BaseModel):
     name: str = Field(pattern="^[A-Za-z0-9._:/-]{1,120}$")
-class AgentTask(BaseModel):\n    task: str = Field(min_length=5, max_length=8000)\n    model: str = Field(default="qwen2.5:3b", min_length=1, max_length=160)\n    allow_changes: bool = False\nclass AgentRead(BaseModel):
+class AgentTask(BaseModel):
+    task: str = Field(min_length=5, max_length=8000)
+    model: str = Field(default="qwen2.5:3b", min_length=1, max_length=160)
+    allow_changes: bool = False
+class AgentRead(BaseModel):
     path: str = Field(min_length=1, max_length=500)
 class AgentWrite(BaseModel):
     path: str = Field(min_length=1, max_length=500)
