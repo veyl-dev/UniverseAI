@@ -1,9 +1,13 @@
 const nextConfig = {
   output: "standalone",
   async rewrites() {
-    const backend = process.env.API_INTERNAL_URL || "http://localhost:8000";
-    return [{source:"/api/:path*",destination:backend+"/api/:path*"},
-            {source:"/health",destination:backend+"/health"}];
+    const configured = process.env.API_INTERNAL_URL || "http://localhost:8000";
+    const backend = configured.startsWith("http") ? configured : "https://" + configured;
+    const base = backend.replace(/\/$/, "");
+    return [
+      { source: "/api/:path*", destination: base + "/api/:path*" },
+      { source: "/health", destination: base + "/health" }
+    ];
   }
 };
 export default nextConfig;
