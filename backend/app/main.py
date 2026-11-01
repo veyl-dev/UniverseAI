@@ -178,7 +178,7 @@ async def chat(body: ChatInput, user: User = Depends(current_user), db: Session 
     async def events():
         answer = ""
         try:
-            async for token in get_provider("ollama").stream(body.model, payload, body.temperature):
+            async for token in get_provider(body.provider).stream(body.model, payload, body.temperature):
                 answer += token
                 yield "data: " + json.dumps({"token":token}, ensure_ascii=False) + "\n\n"
             if answer:
