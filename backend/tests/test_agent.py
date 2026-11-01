@@ -38,3 +38,15 @@ def test_command_allowlist_rejects_shell_injection():
         assert False,"shell operators must be rejected"
     except agent.AgentToolError:
         pass
+
+def test_sensitive_files_are_blocked(monkeypatch):
+    with tempfile.TemporaryDirectory() as folder:
+        root=Path(folder).resolve()
+        monkeypatch.setattr(agent,"ROOT",root)
+        (root/".env").write_text("SECRET=value")
+        try:
+            agent.read_file(".env")
+            assert False,"environment files must not be readable"
+        except agent.AgentToolError:
+            pass
+        assert ".env" not in agent.list_files()
