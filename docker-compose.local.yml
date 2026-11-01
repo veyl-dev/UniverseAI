@@ -7,7 +7,7 @@ services:
     build: ./backend
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-qwen2.5:3b}
+      OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-qwen2.5:3b}\n      AI_PROVIDER: ${AI_PROVIDER:-ollama}\n      OPENAI_COMPAT_BASE_URL: ${OPENAI_COMPAT_BASE_URL:-}\n      OPENAI_COMPAT_API_KEY: ${OPENAI_COMPAT_API_KEY:-}\n      OPENAI_COMPAT_MODEL: ${OPENAI_COMPAT_MODEL:-default}
       DATABASE_URL: sqlite:////app/data/universeai.db
       JWT_SECRET: ${JWT_SECRET:?Set a long random JWT_SECRET in .env}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
